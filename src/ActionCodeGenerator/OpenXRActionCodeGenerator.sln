@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXRActionCodeGenerator", "OpenXRActionCodeGenerator.csproj", "{BEB633CF-FD56-42BA-B1FE-FB6AFC6226DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BEB633CF-FD56-42BA-B1FE-FB6AFC6226DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEB633CF-FD56-42BA-B1FE-FB6AFC6226DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEB633CF-FD56-42BA-B1FE-FB6AFC6226DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEB633CF-FD56-42BA-B1FE-FB6AFC6226DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {70B75B9A-3996-49D0-8D8E-EFB3CB5D9ACA}
+	EndGlobalSection
+EndGlobal

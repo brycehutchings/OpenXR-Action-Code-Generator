@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "OpenXRActionCodeGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "hello_xr.json"
+    }
+  }
+}
