@@ -50,7 +50,7 @@
           "grab_object": [ "/user/hand/left/input/squeeze/value", "/user/hand/left/input/squeeze/value" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
-          "quit_session": [ "/user/hand/left/input/menu/click", "/user/hand/right/input/menu/click" ]
+          "quit_session": [ "/user/hand/left/input/menu/click" ]
         },
         {
           "interactionProfile": "/interaction_profiles/valve/index_controller",

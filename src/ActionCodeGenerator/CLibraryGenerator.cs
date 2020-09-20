@@ -1,19 +1,4 @@
-﻿/*
- * TODO:
- * * Allow priority to default to 0
- * * Replace strcpy_s with something cross-platform
- * * Solve localizedName :-(
- * * Add error validations
- *      1. Name and Localized name match?
- *      2. Either name or localized name are empty.
- * * Add warning validations
- *      1. No actions in an action set
- *      2. 
- * * Add more naming convention converters and wire to command line or manifest
- * * Use enum for subactions with json converter
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,12 +25,13 @@ namespace OpenXRActionCodeGenerator
             {
                 WriteActionSetStruct(sb, actionSet, indent, conv);
                 WriteActionSetStateStruct(sb, actionSet, indent, conv);
+                WriteSuggestedBindingsStruct(sb, actionSet, indent, conv);
             }
 
             return sb.ToString();
         }
 
-        private static void WriteActionSetInitializeMethod(StringBuilder sb, ActionSet actionSet,  int indent, INamingConventionConverter conv)
+        private static void WriteActionSetInitializeMethod(StringBuilder sb, ActionSet actionSet, int indent, INamingConventionConverter conv)
         {
             Action<string> appendLineTrim = (string text) => sb.AppendLine(text.TrimEnd());
             Action<string> appendLine = (string text) => appendLineTrim($"{new string(' ', indent * 4)}{text}");
@@ -103,7 +89,7 @@ namespace OpenXRActionCodeGenerator
                     appendLine($"actionCreateInfo.countSubactionPaths = {subactionPaths.Count()};");
                     appendLine($"actionCreateInfo.subactionPaths = subactionPaths;");
                 }
-                appendLine($"CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionCreateInfo, &{GetActionHandleMemberName(action, conv)}));");
+                appendLine($"CHECK_XRCMD(xrCreateAction(ActionSet, &actionCreateInfo, &{GetActionHandleMemberName(action.Name, conv)}));");
                 indent--;
                 appendLine("}");
             }
@@ -123,12 +109,12 @@ namespace OpenXRActionCodeGenerator
             Action<TopLevelPath> writeActionSpaceFunction = (TopLevelPath subactionPath) =>
             {
                 appendLine("");
-                appendLine($"XrResult {conv.Rename("Create", GetNameWithSubaction(action.Name, subactionPath), "ActionSpace")}(XrSession {conv.Rename("session")}) const");
+                appendLine($"XrResult {conv.Rename("Create", GetNameWithSubaction(action.Name, subactionPath), "ActionSpace")}(XrSession {conv.Rename("session")}, XrSpace* space) const");
                 appendLine("{");
                 indent++;
 
                 appendLine($"XrActionSpaceCreateInfo actionSpaceInfo{{XR_TYPE_ACTION_SPACE_CREATE_INFO}};");
-                appendLine($"actionSpaceInfo.action = {GetActionHandleMemberName(action, conv)};");
+                appendLine($"actionSpaceInfo.action = {GetActionHandleMemberName(action.Name, conv)};");
                 appendLine($"actionSpaceInfo.poseInActionSpace.orientation.w = 1.0f;");
 
                 if (subactionPath != TopLevelPath.Null)
@@ -136,7 +122,7 @@ namespace OpenXRActionCodeGenerator
                     appendLine($"actionSpaceInfo.subactionPath = {GetSubactionMemberName(subactionPath, conv)};");
                 }
 
-                appendLine($"return xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.handSpace[Side::LEFT]);");
+                appendLine($"return xrCreateActionSpace(session, &actionSpaceInfo, &space);");
 
                 indent--;
                 appendLine("}");
@@ -177,7 +163,7 @@ namespace OpenXRActionCodeGenerator
             appendLine("");
             foreach (var action in actionSet.Actions)
             {
-                appendLine($"XrAction {GetActionHandleMemberName(action, conv)}{{XR_NULL_HANDLE}};");
+                appendLine($"XrAction {GetActionHandleMemberName(action.Name, conv)}{{XR_NULL_HANDLE}};");
             }
 
             // Write out the used subaction paths.
@@ -222,7 +208,7 @@ namespace OpenXRActionCodeGenerator
                     appendLine("if (XR_SUCCEEDED(result))");
                     appendLine("{");
                     indent++;
-                    appendLine($"actionStateGetInfo.action = actionSet.{GetActionHandleMemberName(action, conv)};");
+                    appendLine($"actionStateGetInfo.action = actionSet.{GetActionHandleMemberName(action.Name, conv)};");
 
                     if (action.UseSubactionPaths)
                     {
@@ -262,11 +248,86 @@ namespace OpenXRActionCodeGenerator
             appendLine("};");
         }
 
+        private static void WriteSuggestedBindingsStruct(StringBuilder sb, ActionSet actionSet, int indent, INamingConventionConverter conv)
+        {
+            Action<string> appendLineTrim = (string text) => sb.AppendLine(text.TrimEnd());
+            Action<string> appendLine = (string text) => appendLineTrim($"{new string(' ', indent * 4)}{text}");
+            Action<bool> addLineIfTrue = (bool condition) => { if (condition) { appendLineTrim(""); } };
+
+            appendLine("");
+            appendLine($"struct InteractionProfiles"); // TODO: Add a manifest name and use it here to ensure no namespace conflicts.
+            appendLine("{");
+            indent++;
+
+            appendLine($"XrResult SuggestInteractionProfileBindings(XrInstance instance, {GetActionSetStructName(actionSet, conv)} const& actionSet))");
+            appendLine("{");
+            indent++;
+            appendLine("XrResult result = XR_SUCCESS;");
+
+            appendLine("");
+            foreach (var suggestedBindings in actionSet.SuggestedBindings)
+            {
+                appendLine("if (XR_SUCCEEDED(result))");
+                appendLine("{");
+                indent++;
+                appendLine($"result = xrStringToPath(instance, \"{suggestedBindings.InteractionProfile}\", &{GetInteractionProfileMemberName(suggestedBindings.InteractionProfile, conv)});");
+                indent--;
+                appendLine("}");
+            }
+
+            appendLine("");
+            foreach (var suggestedBindings in actionSet.SuggestedBindings)
+            {
+                appendLine("if (XR_SUCCEEDED(result))");
+                appendLine("{");
+                indent++;
+
+                appendLine("XrActionSuggestedBinding suggestedBindings[] = {");
+
+                indent++;
+
+                int bindingCount = 0;
+                foreach (var suggestedBinding in suggestedBindings.Bindings)
+                {
+                    foreach (var bindingPath in suggestedBinding.Value)
+                    {
+                        appendLine($"{{actionSet.{GetActionHandleMemberName(suggestedBinding.Key, conv)}, \"{bindingPath}\"}},");
+                        bindingCount++;
+                    }
+                }
+                indent--;
+
+                appendLine("};");
+                appendLine("XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};");
+                appendLine($"suggestedBindings.interactionProfile = {GetInteractionProfileMemberName(suggestedBindings.InteractionProfile, conv)};");
+                appendLine("suggestedBindings.suggestedBindings = suggestedBindings;");
+                appendLine($"suggestedBindings.countSuggestedBindings = {bindingCount};");
+                appendLine("CHECK_XRCMD(xrSuggestInteractionProfileBindings(instance, &suggestedBindings));");
+                indent--;
+                appendLine("}");
+            }
+            appendLine("return result;");
+            indent--;
+            appendLine("}");
+
+            appendLine("");
+
+            foreach (var suggestedBindings in actionSet.SuggestedBindings)
+            {
+                appendLine($"XrPath {GetInteractionProfileMemberName(suggestedBindings.InteractionProfile, conv)};");
+            }
+
+            indent--;
+            appendLine("};");
+        }
+
+        public static string GetInteractionProfileMemberName(string interactionProfilePath, INamingConventionConverter conv) => conv.Rename(interactionProfilePath.Replace("/interaction_profiles/", "").Replace('/', '_'));
+
         private static string GetActionStateMemberName(Action action, TopLevelPath subactionPath, INamingConventionConverter conv) => conv.Rename(GetNameWithSubaction(action.Name, subactionPath), "ActionState");
 
         private static string GetActionSetStructName(ActionSet actionSet, INamingConventionConverter conv) => conv.Rename(actionSet.Name, "ActionSet");
 
-        private static string GetActionHandleMemberName(Action action, INamingConventionConverter conv) => conv.Rename(action.Name);
+        private static string GetActionHandleMemberName(string actionName, INamingConventionConverter conv) => conv.Rename(actionName);
 
         private static string GetActionStateStructName(ActionType actionType)
         {
