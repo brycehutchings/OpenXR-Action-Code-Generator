@@ -2,6 +2,10 @@
  * TODO:
  * * Allow priority to default to 0
  * * Replace strcpy_s with something cross-platform
+ *      Steal from hello_xr (but with push/pop too)?
+ *          #if !defined(XR_USE_PLATFORM_WIN32)
+ *          #define strcpy_s(dest, source) strncpy((dest), (source), sizeof(dest))
+ *          #endif
  * * Solve localizedName :-(
  * * Add error validations
  *      1. Name and Localized name match?
@@ -15,10 +19,11 @@
  *      2. Missing action bindings for an action for a interaction profile
  *      3. Unknown interaction profile
  *      4. Not using subaction path for pose
- * * Add more naming convention converters and wire to command line or manifest
+ * * Add more naming convention converters and wire to command line or manifest. Make configurable for class name, member name, and local variable name.
  * * Use enum for subactions with json converter
- * * Support for looping over subaction paths for action state (e.g. for (auto subactionPath : {Left,Right}) {})
+ * * Support for consumers of generated header to loop over subaction paths for action state (e.g. for (auto subactionPath : {Left,Right}) {})
  * * Support for haptic helpers
+ * * Support to use a function other than strcpy/strcpy_s?
  */
 
 using System;
