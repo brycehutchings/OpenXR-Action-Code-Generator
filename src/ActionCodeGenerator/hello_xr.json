@@ -13,14 +13,14 @@
         },
         {
           "name": "hand_pose",
-          "localizedName": "Grab Object",
+          "localizedName": "Hand Pose",
           "type": "pose",
           "useSubactionPaths": true
         },
         // Note: hello_xr doesn't actually have an action that doesn't use subaction paths so this is just here as a test case for now.
         {
           "name": "hand_pose_both",
-          "localizedName": "Grab Object",
+          "localizedName": "Hand Pose Both",
           "type": "pose",
           "useSubactionPaths": false
         },
@@ -48,7 +48,7 @@
         },
         {
           "interactionProfile": "/interaction_profiles/oculus/touch_controller",
-          "grab_object": [ "/user/hand/left/input/squeeze/value", "/user/hand/left/input/squeeze/value" ],
+          "grab_object": [ "/user/hand/left/input/squeeze/value", "/user/hand/right/input/squeeze/value" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
@@ -56,7 +56,7 @@
         },
         {
           "interactionProfile": "/interaction_profiles/valve/index_controller",
-          "grab_object": [ "/user/hand/left/input/select/click", "/user/hand/right/input/select/click" ],
+          "grab_object": [ "/user/hand/left/input/trigger/value", "/user/hand/right/input/trigger/value" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
@@ -64,7 +64,7 @@
         },
         {
           "interactionProfile": "/interaction_profiles/microsoft/motion_controller",
-          "grab_object": [ "/user/hand/left/input/squeeze/click", "/user/hand/left/input/squeeze/click" ],
+          "grab_object": [ "/user/hand/left/input/squeeze/click", "/user/hand/right/input/squeeze/click" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace OpenXRActionCodeGenerator
@@ -144,6 +145,19 @@ namespace OpenXRActionCodeGenerator
             appendLine("{");
             indent++;
 
+            appendLine($"~{GetActionSetStructName(actionSet, conv)}()");
+            appendLine("{");
+            indent++;
+            appendLine("if (ActionSet != XR_NULL_HANDLE)");
+            appendLine("{");
+            indent++;
+            appendLine("(void)xrDestroyActionSet(ActionSet);");
+            indent--;
+            appendLine("}");
+            indent--;
+            appendLine("}");
+
+            appendLine("");
             WriteActionSetInitializeMethod(sb, actionSet, indent, conv);
 
             foreach (var action in actionSet.Actions)
@@ -183,23 +197,45 @@ namespace OpenXRActionCodeGenerator
             Action<string> appendLine = (string text) => appendLineTrim($"{new string(' ', indent * 4)}{text}");
             Action<bool> addLineIfTrue = (bool condition) => { if (condition) { appendLineTrim(""); } };
 
+            var inputActions = actionSet.Actions.Where(a => a.Type != ActionType.Haptic);
+
+            var usedTopLevelPathsWithoutNull = inputActions.SelectMany(a => GetActionSubactionPaths(actionSet, a)).Distinct().OrderBy(s => s);
+
             appendLine("");
             appendLine($"struct {conv.Rename("", actionSet.Name, "ActionStates")}");
             appendLine("{");
             indent++;
+
+            // Write out a struct with all actions that have subactions enabled for per-subaction querying.
+            bool hasSubactionPath = false;
+            foreach (var action in inputActions.Where(a => a.UseSubactionPaths))
+            {
+                if (!hasSubactionPath)
+                {
+                    // Delay writing struct to here so it isn't written at all if there are no subaction paths.
+                    appendLine("struct SubactionStates");
+                    appendLine("{");
+                    indent++;
+                    hasSubactionPath = true;
+                    appendLine("XrPath SubactionPath = XR_NULL_PATH;");
+                }
+
+                appendLine($"const {GetActionStateStructName(action.Type)}* {GetActionStateMemberName(action, TopLevelPath.Null, conv)} = nullptr;");
+            }
+            if (hasSubactionPath)
+            {
+                indent--;
+                appendLine("};");
+                appendLine("");
+            }
 
             appendLine($"XrResult UpdateActionStates(XrSession session, {GetActionSetStructName(actionSet, conv)} const& actionSet)");
             appendLine("{");
             indent++;
             appendLine("XrActionStateGetInfo actionStateGetInfo{XR_TYPE_ACTION_STATE_GET_INFO};");
             appendLine("XrResult result = XR_SUCCESS;");
-            foreach (var action in actionSet.Actions)
+            foreach (var action in inputActions)
             {
-                if (action.Type == ActionType.Haptic)
-                {
-                    continue; // Skip out actions.
-                }
-
                 foreach (var subaction in GetActionSubactionPaths(actionSet, action, includeNull: true))
                 {
                     appendLine("");
@@ -228,19 +264,60 @@ namespace OpenXRActionCodeGenerator
             indent--;
             appendLine("}");
 
-            appendLine("");
-            foreach (var action in actionSet.Actions)
+            // Write function to get the action states for a specific subaction path.
+            if (usedTopLevelPathsWithoutNull.Any())
             {
-                if (action.Type == ActionType.Haptic)
+                appendLine("");
+                appendLine($"SubactionStates GetSubactionStates({GetActionSetStructName(actionSet, conv)} const& actionSet, XrPath subactionPath) const");
+                appendLine("{");
+                indent++;
+                bool firstCase = true;
+                foreach (var subactionPath in usedTopLevelPathsWithoutNull)
                 {
-                    continue; // Skip out actions.
+                    appendLine($"{(firstCase ? "" : "else ")}if (subactionPath == actionSet.{GetSubactionMemberName(subactionPath, conv)})");
+                    appendLine("{");
+                    indent++;
+                    var subactionMemberVariables = inputActions
+                        .Where(a => a.UseSubactionPaths)
+                        .Select(a =>
+                        {
+                            bool hasThisSubactionBinding = GetActionSubactionPaths(actionSet, a).Any(s => s == subactionPath);
+                            return hasThisSubactionBinding ? ("&" + GetActionStateMemberName(a, subactionPath, conv)) : "nullptr";
+                        });
+
+                    appendLine($"return {{subactionPath, {string.Join(", ", subactionMemberVariables)}}};");
+                    indent--;
+                    appendLine("}");
+                    firstCase = false;
                 }
 
+                appendLine("else");
+                appendLine("{");
+                indent++;
+                appendLine("return {}; // Unknown subaction path.");
+                indent--;
+                appendLine("}");
+
+
+                indent--;
+                appendLine("}");
+            }
+
+            appendLine("");
+            foreach (var action in inputActions)
+            {
                 foreach (var subaction in GetActionSubactionPaths(actionSet, action, includeNull: true))
                 {
                     appendLine($"{GetActionStateStructName(action.Type)} {GetActionStateMemberName(action, subaction, conv)}{{{GetActionStateStructType(action.Type)}}};");
                 }
             }
+
+            // Write out per-subaction path member struct shortcuts.
+            /*addLineIfTrue(usedTopLevelPathsWithoutNull.Any());
+            foreach (var subactionPath in usedTopLevelPathsWithoutNull)
+            {
+                appendLine($"SubactionStates {GetSubactionMemberName(subactionPath, conv)};");
+            }*/
 
             indent--;
             appendLine("};");
@@ -277,7 +354,7 @@ namespace OpenXRActionCodeGenerator
             var allBindingPaths = actionSet.SuggestedBindings.SelectMany(s => s.Bindings).SelectMany(s => s.Value);
             foreach (var suggestedBinding in allBindingPaths.Distinct().OrderBy(p => p))
             {
-                appendLine($"XrPath {GetBindingVariableName(suggestedBinding, conv)};");
+                appendLine($"XrPath {GetBindingVariableName(suggestedBinding, conv)} = XR_NULL_PATH;");
             }
 
             foreach (var suggestedBinding in allBindingPaths.Distinct().OrderBy(p => p))
