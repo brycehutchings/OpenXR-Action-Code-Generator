@@ -6,7 +6,8 @@
  *          #if !defined(XR_USE_PLATFORM_WIN32)
  *          #define strcpy_s(dest, source) strncpy((dest), (source), sizeof(dest))
  *          #endif
- * * Solve localizedName :-(
+ * * Support to use a function other than strcpy/strcpy_s?
+ * * Solve customizable localizedName :-(
  * * Add error validations
  *      1. Name and Localized name match?
  *      2. Either name or localized name are empty.
@@ -23,7 +24,9 @@
  * * Use enum for subactions with json converter
  * * Support for consumers of generated header to loop over subaction paths for action state (e.g. for (auto subactionPath : {Left,Right}) {})
  * * Support for haptic helpers
- * * Support to use a function other than strcpy/strcpy_s?
+ * * Add a macro to avoid if (succeeded()) everywhere:
+ *      CHAIN_XRCMD(result, xrStringToPath(instance, "/interaction_profiles/khr/simple_controller", &KhrSimpleController));
+ * * Add SyncActions helper to action set class. It'll be useful for apps that only have one action set.
  */
 
 using System;

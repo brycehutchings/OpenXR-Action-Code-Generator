@@ -253,7 +253,7 @@ namespace OpenXRActionCodeGenerator
             Action<bool> addLineIfTrue = (bool condition) => { if (condition) { appendLineTrim(""); } };
 
             appendLine("");
-            appendLine($"struct InteractionProfiles"); // TODO: Add a manifest name and use it here to ensure no namespace conflicts.
+            appendLine($"struct SuggestedBindings"); // TODO: Add a manifest name and use it here to ensure no namespace conflicts.
             appendLine("{");
             indent++;
 
@@ -290,10 +290,12 @@ namespace OpenXRActionCodeGenerator
                 appendLine("}");
             }
 
+            appendLine("");
+            appendLine("if (XR_SUCCEEDED(result))");
+            appendLine("{");
+            indent++;
             foreach (var suggestedBindings in actionSet.SuggestedBindings)
             {
-                appendLine("");
-
                 int index = 0;
                 foreach (var suggestedBinding in suggestedBindings.Bindings)
                 {
@@ -304,7 +306,10 @@ namespace OpenXRActionCodeGenerator
                     }
                 }
             }
+            indent--;
+            appendLine("}");
 
+            appendLine("");
             appendLine("return result;");
             indent--;
             appendLine("}");

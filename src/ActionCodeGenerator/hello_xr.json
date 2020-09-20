@@ -42,6 +42,7 @@
           "interactionProfile": "/interaction_profiles/khr/simple_controller",
           "grab_object": [ "/user/hand/left/input/select/click", "/user/hand/right/input/select/click" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
+          "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
           "quit_session": [ "/user/hand/left/input/menu/click", "/user/hand/right/input/menu/click" ]
         },
@@ -49,6 +50,7 @@
           "interactionProfile": "/interaction_profiles/oculus/touch_controller",
           "grab_object": [ "/user/hand/left/input/squeeze/value", "/user/hand/left/input/squeeze/value" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
+          "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
           "quit_session": [ "/user/hand/left/input/menu/click" ]
         },
@@ -56,6 +58,7 @@
           "interactionProfile": "/interaction_profiles/valve/index_controller",
           "grab_object": [ "/user/hand/left/input/select/click", "/user/hand/right/input/select/click" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
+          "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
           "quit_session": [ "/user/hand/left/input/b/click", "/user/hand/right/input/b/click" ]
         },
@@ -63,6 +66,7 @@
           "interactionProfile": "/interaction_profiles/microsoft/motion_controller",
           "grab_object": [ "/user/hand/left/input/squeeze/click", "/user/hand/left/input/squeeze/click" ],
           "hand_pose": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
+          "hand_pose_both": [ "/user/hand/left/input/grip/pose", "/user/hand/right/input/grip/pose" ],
           "vibrate_hand": [ "/user/hand/left/output/haptic", "/user/hand/right/output/haptic" ],
           "quit_session": [ "/user/hand/left/input/menu/click", "/user/hand/right/input/menu/click" ]
         }
